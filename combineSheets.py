@@ -45,11 +45,31 @@ if __name__ == "__main__":
                       allyData["Scanned:1"][i], allyData["ImageDescription:2"][i]]
         allyDict[allyCourses[i]] = courseInfo
 
+    shouldCompare = False
+
+    try:
+        oldFileObj = pd.read_csv("Old-FilledInFile.csv")
+        oldFile = pd.DataFrame(oldFileObj)
+        oldFileData = {}
+
+        oldCourses = oldFile["Course"]
+        for i in range(0, len(oldCourses)):  # through old data
+            oldFileData[oldCourses[i]] = oldFile.iloc[i]
+            #print(oldFileData[oldCourses[i]])
+        shouldCompare = True
+    except FileNotFoundError as e:
+        print(e)
+        print("Old-FilledInFile.csv not found")
+
     courseNames = meghanData["Course"]
 
     for i in range(0, len(courseNames)): #through Meghan's data
         try:
             allyInfo = allyDict[courseNames[i]]
+            if shouldCompare:
+                if allyInfo == oldFileData[courseNames[i]]:
+                    meghanData.drop()
+                    continue
             meghanData.loc[i, ["Overall Ally", "Files Ally", "WYSIWYG Ally", "PDF no OCR", "Images no Alt"]] = allyInfo
             # print(f"Successfully matched {courseNames[i]}")
             writeToReport("Successfully matched", courseNames[i])
@@ -64,3 +84,5 @@ if __name__ == "__main__":
 
     print(f"\nDone in {time() - beginTime:.3f} seconds!", file=sys.stderr)
     writeToReport(f"Done in {time() - beginTime:.3f} seconds!", "")
+
+    os.system('open FilledInFile.csv')
